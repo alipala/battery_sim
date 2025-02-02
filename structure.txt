@@ -1,0 +1,15 @@
+.
+├── Dockerfile
+├── README.md
+├── main.py
+├── railway.toml
+├── requirements.txt
+├── static
+│   ├── css
+│   │   └── style.css
+│   ├── index.html
+│   └── js
+│       └── main.js
+└── structure.txt
+
+4 directories, 9 files
