@@ -1,7 +1,7 @@
 from fastapi import FastAPI, UploadFile, File, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
-from fastapi.responses import FileResponse
+from fastapi.responses import FileResponse, JSONResponse
 from pydantic import BaseModel
 import pandas as pd
 import numpy as np
@@ -177,10 +177,22 @@ class PriceAnalyzer:
 # Initialize analyzer
 price_analyzer = PriceAnalyzer()
 
+# Health check endpoint
+@app.get("/health")
+async def health_check():
+    return {"status": "healthy"}
+
 # Serve frontend
 @app.get("/")
 async def read_root():
-    return FileResponse('static/index.html')
+    try:
+        return FileResponse('static/index.html')
+    except Exception as e:
+        logger.error(f"Error serving index.html: {str(e)}")
+        return JSONResponse(
+            status_code=500,
+            content={"message": "Internal server error"}
+        )
 
 @app.post("/api/upload")
 async def upload_file(file: UploadFile = File(...)):
@@ -200,14 +212,11 @@ async def analyze_data(config: BatteryConfig):
         if price_analyzer.df is None:
             raise HTTPException(status_code=400, detail="No data loaded. Please upload a file first.")
         
-        logger.debug(f"Analyzing data with config: {config}")
-        result = {
+        return {
             "daily": price_analyzer.calculate_daily_profits(config.capacity),
             "monthly": price_analyzer.calculate_monthly_profits(config.capacity),
             "yearly": price_analyzer.calculate_yearly_summary(config.capacity, config.price)
         }
-        logger.debug("Analysis completed successfully")
-        return result
     except Exception as e:
         logger.error(f"Analysis error: {str(e)}")
         raise HTTPException(status_code=500, detail=str(e))
@@ -219,5 +228,14 @@ if __name__ == "__main__":
     os.makedirs("static/js", exist_ok=True)
     os.makedirs("static/css", exist_ok=True)
     
+    # Get port from environment variable or use default
+    port = int(os.environ.get("PORT", 8000))
+    
     # Start server
-    uvicorn.run("main:app", host="0.0.0.0", port=8000, reload=True)
+    uvicorn.run(
+        "main:app", 
+        host="0.0.0.0", 
+        port=port, 
+        reload=False,  # Disable reload in production
+        workers=4  # Multiple workers for better performance
+    )
