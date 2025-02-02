@@ -1,0 +1,214 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Battery Profit Analysis Dashboard</title>
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/tailwindcss/2.2.19/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="/static/css/style.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/3.7.0/chart.min.js"></script>
+</head>
+<body class="bg-gray-50">
+    <div class="container mx-auto px-4 py-8">
+        <!-- Header -->
+        <div class="mb-8 text-center">
+            <h1 class="text-3xl font-bold text-gray-800 mb-2">Battery Profit Analysis Dashboard</h1>
+            <p class="text-gray-600">Analyze your battery investment returns and optimize energy trading</p>
+        </div>
+
+        <!-- Main Grid Container -->
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+            <!-- File Upload Section -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
+                    Upload Price Data
+                </h2>
+                <div class="upload-container">
+                    <input type="file" id="priceDataUpload" accept=".xlsx,.xls" class="hidden">
+                    <label for="priceDataUpload" 
+                           class="bg-blue-500 text-white px-4 py-2 rounded cursor-pointer hover:bg-blue-600 transition-colors duration-200">
+                        Upload Excel File
+                    </label>
+                    <div class="upload-status">
+                        <div class="loading-spinner"></div>
+                        <span id="uploadStatus" class="ml-2"></span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Battery Configuration -->
+            <div class="bg-white rounded-lg shadow-lg p-6">
+                <h2 class="text-xl font-bold mb-4 flex items-center">
+                    <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                              d="M13 10V3L4 14h7v7l9-11h-7z"/>
+                    </svg>
+                    Battery Configuration
+                </h2>
+                <div class="space-y-4">
+                    <!-- Predefined Options -->
+                    <div class="mb-4">
+                        <h3 class="font-semibold mb-2 text-gray-700">Predefined Configurations</h3>
+                        <div class="flex flex-wrap gap-4">
+                            <button class="battery-option active" data-capacity="100" data-price="40000">
+                                100kWh - €40,000
+                            </button>
+                            <button class="battery-option" data-capacity="200" data-price="80000">
+                                200kWh - €80,000
+                            </button>
+                        </div>
+                    </div>
+                    <!-- Custom Configuration -->
+                    <div>
+                        <h3 class="font-semibold mb-2 text-gray-700">Custom Configuration</h3>
+                        <div class="grid grid-cols-2 gap-4">
+                            <div>
+                                <input type="number" id="customCapacity" placeholder="Capacity (kWh)" 
+                                       class="input-field" min="1">
+                                <p class="text-sm text-gray-500 mt-1">Battery Capacity</p>
+                            </div>
+                            <div>
+                                <input type="number" id="customPrice" placeholder="Price (€)" 
+                                       class="input-field" min="1">
+                                <p class="text-sm text-gray-500 mt-1">Battery Price</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Analysis Section -->
+        <div class="bg-white rounded-lg shadow-lg overflow-hidden">
+            <!-- Tab Navigation -->
+            <div class="border-b border-gray-200">
+                <nav class="flex space-x-4 px-6 py-3" role="tablist">
+                    <button class="tab-button active" data-tab="daily" role="tab">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Daily Analysis
+                        </span>
+                    </button>
+                    <button class="tab-button" data-tab="monthly" role="tab">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z"/>
+                            </svg>
+                            Monthly Analysis
+                        </span>
+                    </button>
+                    <button class="tab-button" data-tab="yearly" role="tab">
+                        <span class="flex items-center">
+                            <svg class="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                                      d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/>
+                            </svg>
+                            Yearly Analysis
+                        </span>
+                    </button>
+                </nav>
+            </div>
+
+            <!-- Tab Content -->
+            <div class="p-6">
+                <!-- Daily Analysis -->
+                <div id="dailyTab" class="tab-content active" role="tabpanel">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Daily Price Trends</h3>
+                            <canvas id="dailyProfitLine"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Daily Profit Distribution</h3>
+                            <canvas id="dailyProfitBar"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Cumulative Daily Profit</h3>
+                            <canvas id="dailyProfitArea"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Monthly Analysis -->
+                <div id="monthlyTab" class="tab-content hidden" role="tabpanel">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Monthly Profit Trends</h3>
+                            <canvas id="monthlyProfitLine"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Monthly Profit Comparison</h3>
+                            <canvas id="monthlyProfitBar"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Cumulative Monthly Profit</h3>
+                            <canvas id="monthlyProfitArea"></canvas>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Yearly Analysis -->
+                <div id="yearlyTab" class="tab-content hidden" role="tabpanel">
+                    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Yearly Profit Projection</h3>
+                            <canvas id="yearlyProfitLine"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Yearly Profit Distribution</h3>
+                            <canvas id="yearlyProfitBar"></canvas>
+                        </div>
+                        <div class="chart-container">
+                            <h3 class="text-lg font-semibold mb-4">Cumulative Yearly Profit</h3>
+                            <canvas id="yearlyProfitArea"></canvas>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ROI Analysis -->
+        <div class="bg-white rounded-lg shadow-lg p-6 mt-6">
+            <h2 class="text-xl font-bold mb-4 flex items-center">
+                <svg class="w-6 h-6 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" 
+                          d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/>
+                </svg>
+                Return on Investment Analysis
+            </h2>
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-6">
+                <div class="stat-card">
+                    <h3>ROI Period</h3>
+                    <div id="roiPeriod" class="stat-value">-</div>
+                    <p class="text-sm text-gray-500 mt-1">Time to break even</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Annual Return</h3>
+                    <div id="annualReturn" class="stat-value">-</div>
+                    <p class="text-sm text-gray-500 mt-1">Yearly return rate</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Break-even Date</h3>
+                    <div id="breakEvenDate" class="stat-value">-</div>
+                    <p class="text-sm text-gray-500 mt-1">Expected break-even</p>
+                </div>
+                <div class="stat-card">
+                    <h3>Total Investment</h3>
+                    <div id="totalInvestment" class="stat-value">-</div>
+                    <p class="text-sm text-gray-500 mt-1">Initial cost</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="/static/js/main.js"></script>
+</body>
+</html>
