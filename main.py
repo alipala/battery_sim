@@ -7,10 +7,18 @@ import pandas as pd
 import numpy as np
 from datetime import datetime
 import os
+import sys
 import logging
 
+
 # Configure logging
-logging.basicConfig(level=logging.DEBUG)
+logging.basicConfig(
+    level=logging.DEBUG,
+    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s',
+    handlers=[
+        logging.StreamHandler(sys.stdout)
+    ]
+)
 logger = logging.getLogger(__name__)
 
 app = FastAPI()
@@ -180,7 +188,8 @@ price_analyzer = PriceAnalyzer()
 # Health check endpoint
 @app.get("/health")
 async def health_check():
-    return {"status": "healthy"}
+    logger.info("Health check endpoint called")
+    return {"status": "healthy", "timestamp": datetime.now().isoformat()}
 
 # Serve frontend
 @app.get("/")
